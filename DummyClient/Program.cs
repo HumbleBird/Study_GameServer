@@ -54,7 +54,7 @@ namespace DummyClient
                     Console.WriteLine(e.ToString());
                     throw;
                 }
-            Thread.Sleep(100);
+            Thread.Sleep(1000);
             }
 
         }
