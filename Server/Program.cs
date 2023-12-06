@@ -8,56 +8,68 @@ using ServerCore;
 
 namespace Server
 {
-        class GameSeesion : Session
+    class Knight
+    {
+        public int hp;
+        public int attack;
+    }
+
+    class GameSeesion : Session
+    {
+        public override void OnConnected(EndPoint endPoint)
         {
-            public override void OnConnected(EndPoint endPoint)
-            {
-                Console.WriteLine($"OnConnected: {endPoint}");
+            Console.WriteLine($"OnConnected: {endPoint}");
 
-                byte[] sendBuff = Encoding.UTF8.GetBytes("Welcome to MMORPG Server !");
-                Send(sendBuff);
+            Knight knight = new Knight() { hp = 100, attack = 10 };
 
-                Thread.Sleep(1000);
+            ArraySegment<byte> openSegment = SendBufferHelper.Open(4096);
+            byte[] buffer = BitConverter.GetBytes(knight.hp);
+            byte[] buffer2 = BitConverter.GetBytes(knight.attack);
+            Array.Copy(buffer, 0, openSegment.Array, openSegment.Offset, buffer.Length);
+            Array.Copy(buffer2, 0, openSegment.Array, openSegment.Offset + buffer.Length, buffer2.Length);
+            ArraySegment<byte> sendBuff =  SendBufferHelper.Close(buffer.Length + buffer2.Length);
 
-                Disconnect();
-            }
-
-            public override void OnDisconnected(EndPoint endPoint)
-            {
-                Console.WriteLine($"OnDisconnected: {endPoint}");
-            }
-
-            public override int OnRecv(ArraySegment<byte> buffer)
-            {
-                string recvData = Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
-                Console.WriteLine($"[From Client] {recvData}");
-               return buffer.Count;
-            }
-
-            public override void OnSend(int numOfBytes)
-            {
-                Console.WriteLine($"Transferrd bytes: {numOfBytes}");
-            }
+            Send(sendBuff);
+            Thread.Sleep(1000);
+            Disconnect();
         }
 
-        class Program
+        public override void OnDisconnected(EndPoint endPoint)
         {
-            static Listener _listener = new Listener();
+            Console.WriteLine($"OnDisconnected: {endPoint}");
+        }
 
-            static void Main(string[] args)
+        public override int OnRecv(ArraySegment<byte> buffer)
+        {
+            string recvData = Encoding.UTF8.GetString(buffer.Array, buffer.Offset, buffer.Count);
+            Console.WriteLine($"[From Client] {recvData}");
+            return buffer.Count;
+        }
+
+        public override void OnSend(int numOfBytes)
+        {
+            Console.WriteLine($"Transferrd bytes: {numOfBytes}");
+        }
+    }
+
+    class Program
+    {
+        static Listener _listener = new Listener();
+
+        static void Main(string[] args)
+        {
+            // DNS (Domain Name System)
+            string host = Dns.GetHostName();
+            IPHostEntry ipHost = Dns.GetHostEntry(host);
+            IPAddress ipAddr = ipHost.AddressList[0];
+            IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
+
+            _listener.Init(endPoint, () => { return new GameSeesion(); });
+
+            while (true)
             {
-                // DNS (Domain Name System)
-                string host = Dns.GetHostName();
-                IPHostEntry ipHost = Dns.GetHostEntry(host);
-                IPAddress ipAddr = ipHost.AddressList[0];
-                IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
-
-                _listener.Init(endPoint, () => { return new GameSeesion(); });
-
-                while (true)
-                {
-                    ;
-                }
+                ;
             }
         }
+    }
 }
