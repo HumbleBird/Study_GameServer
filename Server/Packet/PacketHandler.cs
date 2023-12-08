@@ -15,7 +15,7 @@ class PacketHandler
         if (clientSession.Room == null)
             return;
 
-        clientSession.Room.Broadcast(ClientSession, chatPacket.chat);
+        clientSession.Room.Broadcast(clientSession, chatPacket.chat);
 
 
     }
