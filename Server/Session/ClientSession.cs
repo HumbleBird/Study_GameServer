@@ -41,7 +41,7 @@ namespace Server
 
         public override void OnSend(int numOfBytes)
         {
-            Console.WriteLine($"Transferrd bytes: {numOfBytes}");
+            //Console.WriteLine($"Transferrd bytes: {numOfBytes}");
         }
     }
 }
